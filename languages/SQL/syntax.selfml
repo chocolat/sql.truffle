@@ -1,0 +1,233 @@
+(root source.sql
+    (include @comments)
+    (zone meta.create.sql
+        (match
+            (regex [(?i:^\s*(create)\s+(aggregate|conversion|database|domain|function|group|(unique\s+)?index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view)\s+)(['"`]?)(\w+)\4]
+                (5 entity.name.function.sql)
+                (1 keyword.other.create.sql)
+                (2 keyword.other.sql))))
+    (zone meta.drop.sql
+        (match
+            (regex [(?i:^\s*(drop)\s+(aggregate|conversion|database|domain|function|group|index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view))]
+                (1 keyword.other.create.sql)
+                (2 keyword.other.sql))))
+    (zone meta.drop.sql
+        (match
+            (regex [(?i:\s*(drop)\s+(table)\s+(\w+)(\s+cascade)?\b)]
+                (3 entity.name.function.sql)
+                (4 keyword.other.cascade.sql)
+                (1 keyword.other.create.sql)
+                (2 keyword.other.table.sql))))
+    (zone meta.alter.sql
+        (match
+            (regex [(?i:^\s*(alter)\s+(aggregate|conversion|database|domain|function|group|index|language|operator class|operator|rule|schema|sequence|table|tablespace|trigger|type|user|view)\s+)]
+                (1 keyword.other.create.sql)
+                (2 keyword.other.table.sql))))
+    (zone
+        (match
+            (regex [(?xi)
+
+				# normal stuff, capture 1
+				 \b(bigint|bigserial|bit|boolean|box|bytea|cidr|circle|date|double\sprecision|inet|int|integer|line|lseg|macaddr|money|oid|path|point|polygon|real|serial|smallint|sysdate|text)\b
+
+				# numeric suffix, capture 2 + 3i
+				|\b(bit\svarying|character\s(?:varying)?|tinyint|var\schar|float|interval)\((\d+)\)
+
+				# optional numeric suffix, capture 4 + 5i
+				|\b(char|number|varchar\d?)\b(?:\((\d+)\))?
+
+				# special case, capture 6 + 7i + 8i
+				|\b(numeric)\b(?:\((\d+),(\d+)\))?
+
+				# special case, captures 9, 10i, 11
+				|\b(times)(?:\((\d+)\))(\swithoutstimeszone\b)?
+
+				# special case, captures 12, 13, 14i, 15
+				|\b(timestamp)(?:(s)\((\d+)\)(\swithoutstimeszone\b)?)?
+
+			]
+                (10 constant.numeric.sql)
+                (2 storage.type.sql)
+                (15 storage.type.sql)
+                (3 constant.numeric.sql)
+                (11 storage.type.sql)
+                (4 storage.type.sql)
+                (5 constant.numeric.sql)
+                (12 storage.type.sql)
+                (6 storage.type.sql)
+                (13 storage.type.sql)
+                (7 constant.numeric.sql)
+                (8 constant.numeric.sql)
+                (14 constant.numeric.sql)
+                (1 storage.type.sql)
+                (9 storage.type.sql))))
+    (zone storage.modifier.sql
+        (match
+            (regex [(?i:\b((?:primary|foreign)\s+key|references|on\sdelete(\s+cascade)?|check|constraint)\b)])))
+    (zone constant.numeric.sql
+        (match
+            (regex \b\d+\b)))
+    (zone keyword.other.DML.sql
+        (match
+            (regex [(?i:\b(select(\s+distinct)?|insert\s+(ignore\s+)?into|update|delete|from|set|where|group\sby|or|like|and|union(\s+all)?|having|order\sby|limit|(inner|cross)\s+join|join|straight_join|(left|right)(\s+outer)?\s+join|natural(\s+(left|right)(\s+outer)?)?\s+join)\b)])))
+    (zone keyword.other.DDL.create.II.sql
+        (match
+            (regex [(?i:\b(on|((is\s+)?not\s+)?null)\b)])))
+    (zone keyword.other.DML.II.sql
+        (match
+            (regex [(?i:\bvalues\b)])))
+    (zone keyword.other.LUW.sql
+        (match
+            (regex [(?i:\b(begin(\s+work)?|start\s+transaction|commit(\s+work)?|rollback(\s+work)?)\b)])))
+    (zone keyword.other.authorization.sql
+        (match
+            (regex [(?i:\b(grant(\swith\sgrant\soption)?|revoke)\b)])))
+    (zone keyword.other.data-integrity.sql
+        (match
+            (regex [(?i:\bin\b)])))
+    (zone keyword.other.object-comments.sql
+        (match
+            (regex [(?i:^\s*(comment\s+on\s+(table|column|aggregate|constraint|database|domain|function|index|operator|rule|schema|sequence|trigger|type|view))\s+.*?\s+(is)\s+)])))
+    (zone keyword.other.alias.sql
+        (match AS
+            (ignore-case)
+            (boundary.both)))
+    (zone keyword.other.order.sql
+        (match
+            (list DESC ASC)
+            (ignore-case)
+            (boundary.both)))
+    (zone keyword.operator.star.sql
+        (match
+            (regex \*)))
+    (zone keyword.operator.comparison.sql
+        (match
+            (regex [[!<>]?=|<>|<|>])))
+    (zone keyword.operator.math.sql
+        (match
+            (regex -|\+|/)))
+    (zone keyword.operator.concatenator.sql
+        (match
+            (regex \|\|)))
+    (zone support.function.scalar.sql
+        (match
+            (regex [(?i)\b(CURRENT_(DATE|TIME(STAMP)?|USER)|(SESSION|SYSTEM)_USER)\b])))
+    (zone support.function.aggregate.sql
+        (match
+            (regex [(?i)\b(AVG|COUNT|MIN|MAX|SUM)(?=\s*\()])))
+    (zone support.function.string.sql
+        (match
+            (list CONCATENATE CONVERT LOWER SUBSTRING TRANSLATE TRIM UPPER)
+            (ignore-case)
+            (boundary.both)))
+    (zone
+        (match
+            (regex [(\w+?)\.(\w+)]
+                (1 constant.other.database-name.sql)
+                (2 constant.other.table-name.sql))))
+    (include @strings)
+    (include @regexps))
+
+(collection comments
+    (zone comment.line.double-dash.sql
+        (match
+            (regex [(--).*$\n?]
+                (1 punctuation.definition.comment.sql))))
+    (zone comment.line.number-sign.sql
+        (match
+            (regex [(#).*$\n?]
+                (1 punctuation.definition.comment.sql))))
+    (zone comment.block.c
+        (start
+            (regex /\*
+                (0 punctuation.definition.comment.sql)))
+        (end
+            (regex \*/
+                (0 punctuation.definition.comment.sql)))))
+
+(collection string_escape
+    (zone constant.character.escape.sql
+        (match
+            (regex \\.))))
+
+(collection string_interpolation
+    (zone string.interpolated.sql
+        (match
+            (regex [(#\{)([^\}]*)(\})]
+                (1 punctuation.definition.string.end.sql)))))
+
+(collection strings
+    (zone string.quoted.single.sql
+        (match
+            (regex [(')[^'\\]*(')]
+                (3 punctuation.definition.string.end.sql)
+                (1 punctuation.definition.string.begin.sql))))
+    (zone string.quoted.single.sql
+        (start
+            (regex '
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex '
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_escape)))
+    (zone string.quoted.other.backtick.sql
+        (match
+            (regex [(`)[^`\\]*(`)]
+                (3 punctuation.definition.string.end.sql)
+                (1 punctuation.definition.string.begin.sql))))
+    (zone string.quoted.other.backtick.sql
+        (start
+            (regex [`]
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex [`]
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_escape)))
+    (zone string.quoted.double.sql
+        (match
+            (regex [(")[^"#]*(")]
+                (3 punctuation.definition.string.end.sql)
+                (1 punctuation.definition.string.begin.sql))))
+    (zone string.quoted.double.sql
+        (start
+            (regex "
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex "
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_interpolation)))
+    (zone string.other.quoted.brackets.sql
+        (start
+            (regex [%\{]
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex [\}]
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_interpolation))))
+
+(collection regexps
+    (zone string.regexp.sql
+        (start
+            (regex [/(?=\S.*/)]
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex /
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_interpolation)
+            (zone constant.character.escape.slash.sql
+                (match
+                    (regex \\/)))))
+    (zone string.regexp.modr.sql
+        (start
+            (regex [%r\{]
+                (0 punctuation.definition.string.begin.sql)))
+        (end
+            (regex [\}]
+                (0 punctuation.definition.string.end.sql)))
+        (subzones
+            (include @string_interpolation))))

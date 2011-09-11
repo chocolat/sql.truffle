@@ -1,0 +1,14 @@
+(trigger
+    (key [[alt][cmd],]))
+
+(name Preferences…)
+
+(only-in source.sql)
+
+(input nothing)
+
+(output nothing)
+
+(save nothing)
+
+(script configure.sh)

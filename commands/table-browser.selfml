@@ -1,0 +1,11 @@
+(trigger)
+
+(name [Database Browser])
+
+(input nothing)
+
+(output html)
+
+(save nothing)
+
+(script [ruby "$TM_BUNDLE_SUPPORT/bin/db_browser.rb"])

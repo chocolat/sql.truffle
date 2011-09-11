@@ -1,0 +1,25 @@
+(trigger
+    (key [[alt][shift][cmd]C]))
+
+(name [Copy Condensed SQL])
+
+(only-in source.sql)
+
+(input selection)
+
+(output tooltip)
+
+(save nothing)
+
+(script [#!/usr/bin/env perl
+$/=\0;$_=<>; # Read all input
+
+s/\s*\-\-.*$//g; # Strip comments
+
+1while s@^(([^'"]*["'][^'"]*["'])*[^"']*)(\n+|\s{2,})@$1 @; # Compact whitespace
+
+# set defaultCStringEncoding to UTF-8 and open pbcopy
+open(PBCOPY, '|__CF_USER_TEXT_ENCODING=$UID:0x8000100:0x8000100 pbcopy');
+print PBCOPY; # Print the SQL to pbcopy
+close PBCOPY;
+print "Copied SQL to Clipboard";])

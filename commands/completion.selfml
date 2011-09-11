@@ -1,0 +1,14 @@
+(trigger
+    (key [[alt][esc]]))
+
+(name Completion)
+
+(only-in source.sql)
+
+(input nothing)
+
+(output after-selected)
+
+(save nothing)
+
+(script "$TM_BUNDLE_SUPPORT/bin/completion.rb")
