@@ -1,1 +1,1 @@
-(menu command.execute-line-selection-as-query command.table-browser --- command.copy-condensed-sql command.completion --- command.document-for-current-word --- command.configure)
+(menu command.copy-condensed-sql --- command.configure)
